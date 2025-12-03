@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kalkulator Akar Non-Linear (Dark Orange Theme)</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #0d0d0d;
+    margin: 0;
+    padding: 0;
+    color: #f2f2f2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* 🔸 Header Logo Bar */
+  header {
+    width: 100%;
+    background-color: #000;
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    box-shadow: 0 2px 8px rgba(255,165,0,0.15);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  header img {
+    height: 40px;
+    margin-right: 10px;
+    border-radius: 6px;
+  }
+
+  header h2 {
+    color: #ffa31a;
+    font-weight: 700;
+    font-size: 20px;
+    margin: 0;
+  }
+
+  .container {
+    max-width: 950px;
+    background-color: #1a1a1a;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(255,165,0,0.1);
+    margin-top: 30px;
+  }
+
+  h1 {
+    text-align: center;
+    color: #ffa31a;
+    margin-bottom: 20px;
+    font-weight: 700;
+  }
+
+  h3 {
+    color: #ffbf40;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 5px;
+  }
+
+  input {
+    width: 100px;
+    margin: 5px;
+    padding: 7px;
+    border-radius: 6px;
+    border: 1px solid #333;
+    background: #262626;
+    color: #fff;
+    text-align: center;
+    transition: 0.3s;
+  }
+
+  input:focus {
+    border-color: #ffa31a;
+    box-shadow: 0 0 8px #ffa31a;
+    outline: none;
+  }
+
+  button {
+    background: #ffa31a;
+    color: #111;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 15px;
+    transition: 0.3s;
+  }
+
+  button:hover {
+    background: #ffb84d;
+    transform: scale(1.05);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    color: #fff;
+  }
+
+  th, td {
+    border: 1px solid #333;
+    padding: 8px;
+    text-align: center;
+  }
+
+  th {
+    background-color: #ffa31a;
+    color: #111;
+  }
+
+  canvas {
+    margin-top: 25px;
+    background: #121212;
+    border-radius: 10px;
+    padding: 10px;
+  }
+
+  #hasil p {
+    color: #f2f2f2;
+  }
+</style>
+</head>
+<body>
+
+<!-- 🔹 HEADER dengan logo -->
+<header>
+  <img id="logo" src="https://www.google.com/imgres?q=pornub%20logo&imgurl=https%3A%2F%2Fdownload.logo.wine%2Flogo%2FPornhub%2FPornhub-Logo.wine.png&imgrefurl=https%3A%2F%2Fwww.logo.wine%2Flogo%2FPornhub&docid=HKo1oAqaT9ptSM&tbnid=3VzeOQ0t80b8DM&vet=12ahUKEwj_xoqb9MSQAxUE4zgGHcA3MBgQM3oECBcQAA..i&w=3000&h=2000&hcb=2&ved=2ahUKEwj_xoqb9MSQAxUE4zgGHcA3MBgQM3oECBcQAA" alt="Logo">
+  <h2>Kalkulator Akar Non-Linear</h2>
+</header>
+
+<div class="container">
+  <h1>🟧 Kalkulator Akar Non-Linear</h1>
+
+  <h3>Masukkan 3 Titik Koordinat (x, y)</h3>
+  <div>
+    Titik 1: ( <input id="x1" type="number" step="any"> , <input id="y1" type="number" step="any"> )<br>
+    Titik 2: ( <input id="x2" type="number" step="any"> , <input id="y2" type="number" step="any"> )<br>
+    Titik 3: ( <input id="x3" type="number" step="any"> , <input id="y3" type="number" step="any"> )
+  </div>
+
+  <h3>Parameter Newton-Raphson</h3>
+  Tebakan awal (x₀): <input id="x0" type="number" step="any" value="1">
+  Toleransi: <input id="tol" type="number" step="any" value="0.0001">
+  Iterasi Maksimum: <input id="maxIter" type="number" value="10">
+
+  <br><button onclick="hitungAkar()">Hitung Akar</button>
+
+  <div id="hasil"></div>
+  <canvas id="grafikFungsi" height="300"></canvas>
+  <canvas id="grafikIterasi" height="250"></canvas>
+</div>
+
+<script>
+let chartFungsi, chartIterasi;
+
+function hitungAkar() {
+  const x1 = parseFloat(document.getElementById("x1").value);
+  const y1 = parseFloat(document.getElementById("y1").value);
+  const x2 = parseFloat(document.getElementById("x2").value);
+  const y2 = parseFloat(document.getElementById("y2").value);
+  const x3 = parseFloat(document.getElementById("x3").value);
+  const y3 = parseFloat(document.getElementById("y3").value);
+  const x0 = parseFloat(document.getElementById("x0").value);
+  const tol = parseFloat(document.getElementById("tol").value);
+  const maxIter = parseInt(document.getElementById("maxIter").value);
+
+  if ([x1,y1,x2,y2,x3,y3].some(isNaN)) {
+    alert("⚠ Harap isi semua titik koordinat dengan benar!");
+    return;
+  }
+
+  const denom = (x1 - x2)*(x1 - x3)*(x2 - x3);
+  if (denom === 0) {
+    alert("⚠ Nilai x tidak boleh sama!");
+    return;
+  }
+
+  const a = (x3*(y2 - y1) + x2*(y1 - y3) + x1*(y3 - y2)) / denom;
+  const b = (x3**2*(y1 - y2) + x2**2*(y3 - y1) + x1**2*(y2 - y3)) / denom;
+  const c = (x2*x3*(x2 - x3)*y1 + x3*x1*(x3 - x1)*y2 + x1*x2*(x1 - x2)*y3) / denom;
+
+  const f = (x) => a*x**2 + b*x + c;
+  const df = (x) => 2*a*x + b;
+
+  let xi = x0, iterasi = [], error = 1, i = 0;
+
+  while (error > tol && i < maxIter) {
+    const fxi = f(xi);
+    const dfxi = df(xi);
+    if (dfxi === 0) {
+      alert("Turunan sama dengan 0, metode tidak dapat dilanjutkan!");
+      break;
+    }
+    const xi_next = xi - (fxi / dfxi);
+    error = Math.abs((xi_next - xi) / xi_next);
+    iterasi.push({ i: i+1, xi, fxi, dfxi, xi_next, error });
+    xi = xi_next;
+    i++;
+  }
+
+  let hasilHTML = `
+    <h3>Persamaan Fungsi:</h3>
+    <p><b>f(x) = ${a.toFixed(5)}x² + ${b.toFixed(5)}x + ${c.toFixed(5)}</b></p>
+    <h3>Tabel Iterasi Newton-Raphson</h3>
+    <table>
+      <tr>
+        <th>Iterasi</th><th>xᵢ</th><th>f(xᵢ)</th><th>f'(xᵢ)</th><th>xᵢ₊₁</th><th>Error</th>
+      </tr>`;
+  iterasi.forEach(row => {
+    hasilHTML += `
+      <tr>
+        <td>${row.i}</td>
+        <td>${row.xi.toFixed(6)}</td>
+        <td>${row.fxi.toExponential(3)}</td>
+        <td>${row.dfxi.toExponential(3)}</td>
+        <td>${row.xi_next.toFixed(6)}</td>
+        <td>${row.error.toExponential(3)}</td>
+      </tr>`;
+  });
+  hasilHTML += `</table>
+    <p><b>Akar Hampiran:</b> x ≈ ${xi.toFixed(6)} (setelah ${i} iterasi)</p>`;
+  document.getElementById("hasil").innerHTML = hasilHTML;
+
+  // Grafik f(x)
+  const xs = [], ys = [];
+  const minX = Math.min(x1, x2, x3) - 2;
+  const maxX = Math.max(x1, x2, x3) + 2;
+  for (let x = minX; x <= maxX; x += 0.1) {
+    xs.push(x);
+    ys.push(f(x));
+  }
+  const ctx1 = document.getElementById('grafikFungsi').getContext('2d');
+  if (chartFungsi) chartFungsi.destroy();
+  chartFungsi = new Chart(ctx1, {
+    type: 'line',
+    data: {
+      labels: xs,
+      datasets: [
+        { label: 'f(x)', data: ys, borderColor: '#ffa31a', borderWidth: 2, fill: false, tension: 0.2 },
+        { label: 'Sumbu X', data: xs.map(() => 0), borderColor: '#666', borderDash: [5,5], borderWidth: 1 },
+      ]
+    },
+    options: { plugins: { title: { display: true, text: 'Grafik Fungsi f(x)' }, legend: { labels: { color: '#fff' } } },
+      scales: { x: { ticks: { color: '#fff' } }, y: { ticks: { color: '#fff' } } } }
+  });
+
+  // Grafik Konvergensi
+  const ctx2 = document.getElementById('grafikIterasi').getContext('2d');
+  if (chartIterasi) chartIterasi.destroy();
+  chartIterasi = new Chart(ctx2, {
+    type: 'line',
+    data: {
+      labels: iterasi.map(row => row.i),
+      datasets: [{ label: 'Nilai Akar per Iterasi', data: iterasi.map(row => row.xi_next), borderColor: '#ffb84d', borderWidth: 2 }]
+    },
+    options: { plugins: { title: { display: true, text: 'Konvergensi Newton-Raphson' }, legend: { labels: { color: '#fff' } } },
+      scales: { x: { ticks: { color: '#fff' } }, y: { ticks: { color: '#fff' } } } }
+  });
+}
+</script>
+</body>
+</html>
